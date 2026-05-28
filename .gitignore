@@ -12,6 +12,9 @@ secrets/
 data/*
 !data/.gitkeep
 
+# Результат tg_discover.py — реальные имена/id чатов (кандидаты в config.yaml)
+config.discovered.yaml
+
 # Старые ручные экспорты Telegram Desktop
 ChatExport_*/
 

@@ -7,6 +7,7 @@
 - `/tg-sync` — выгрузить дельту и обновить `context.md` + `delta-log.md` по каждой цели.
 - `/tg-ask <вопрос>` — ответить по накопленной истории.
 - `/tg-overview` — обзор активных групп за N дней (флаг `--days`, по умолчанию 7).
+- `/tg-discover [N]` — N последних диалогов → `config.discovered.yaml` (кандидаты в цели; файл в `.gitignore`).
 
 Скрипты запускай **питоном из venv**: `.venv/bin/python scripts/<...>.py`
 (системный python даст `ModuleNotFoundError: telethon`).
