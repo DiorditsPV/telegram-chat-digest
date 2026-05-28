@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "telegram-chat-digest"
+version = "0.1.0"
+description = "Light-пайплайн выгрузки дельты чатов Telegram и Q&A по истории через Claude Code"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "telethon>=1.36,<2.0",
+    "PyYAML>=6.0",
+]
+
+[project.urls]
+Repository = "https://github.com/<your-account>/telegram-chat-digest"
+
+# Скрипты запускаются «на месте» из корня репозитория (они находят config.yaml/.env
+# относительно своего файла), поэтому пакет не устанавливается и точек входа нет.
+# `pip install -e .` ставит только зависимости и метаданные.
+[tool.setuptools]
+py-modules = []

@@ -1,0 +1,30 @@
+# --- Секреты / сессия — НИКОГДА не коммитим ---
+.env
+secrets/
+*.session
+*.session-journal
+
+# --- Реальные данные чатов (личные/внутренние) ---
+# Вся папка data/ — это рантайм-выгрузки и производный от них контекст
+# (raw.jsonl, context.md, delta-log.md, _overview.md, state.json).
+# Они содержат личные данные и НЕ публикуются. Демонстрационный формат
+# смотрите в examples/. Под версионированием держим только .gitkeep.
+data/*
+!data/.gitkeep
+
+# Старые ручные экспорты Telegram Desktop
+ChatExport_*/
+
+# --- IDE / ОС ---
+.idea/
+.vscode/
+.DS_Store
+
+# --- Python ---
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
