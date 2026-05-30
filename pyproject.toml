@@ -21,3 +21,24 @@ Repository = "https://github.com/<your-account>/telegram-chat-digest"
 # `pip install -e .` ставит только зависимости и метаданные.
 [tool.setuptools]
 py-modules = []
+
+# --------------------------------------------------------------------------- #
+# Dev-инструменты гейта качества (feature-loop Verify). Ставятся из
+# requirements-dev.txt. Конфиг скоупится так, чтобы новые фичи проходили
+# зелёными, не требуя «лечить» весь легаси-код разом.
+# --------------------------------------------------------------------------- #
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.mypy]
+python_version = "3.10"
+# telethon и yaml без стабов — не валим гейт на сторонних импортах.
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+# Скрипты лежат плоско в scripts/ и запускаются как `python3 scripts/<x>.py`,
+# поэтому в тестах импортируем их по имени модуля (`import shards`).
+pythonpath = ["scripts"]
+testpaths = ["tests"]
+addopts = "-q"

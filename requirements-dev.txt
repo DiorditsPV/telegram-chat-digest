@@ -1,0 +1,7 @@
+# Dev-инструменты для гейта качества feature-loop (см. .claude/feature-loop.md → Verify).
+# Установка:  pip install -r requirements-dev.txt
+-r requirements.txt
+ruff>=0.6
+mypy>=1.8
+pytest>=8.0
+types-PyYAML>=6.0
