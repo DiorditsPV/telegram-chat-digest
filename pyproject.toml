@@ -33,8 +33,12 @@ target-version = "py310"
 
 [tool.mypy]
 python_version = "3.10"
-# telethon и yaml без стабов — не валим гейт на сторонних импортах.
+# Скрипты импортируют сиблингов по имени (`import shards`) — даём mypy этот путь.
+mypy_path = "scripts"
+# Сторонние telethon/yaml без стабов мы намеренно не вендорим — проверяем СВОЙ код,
+# а не библиотеки: глушим import-not-found (ignore_missing_imports) и import-untyped.
 ignore_missing_imports = true
+disable_error_code = ["import-untyped"]
 
 [tool.pytest.ini_options]
 # Скрипты лежат плоско в scripts/ и запускаются как `python3 scripts/<x>.py`,

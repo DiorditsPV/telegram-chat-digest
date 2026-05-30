@@ -26,4 +26,6 @@
 ## Перед изменением кода
 - Формат записи `*.jsonl` и артефактов — в `examples/team-platform/`; держи единый
   формат между `tg_sync.py`, `import_export.py` и `migrate_to_weekly.py`.
-- Логику ISO-недели (`iso_week_of`) дублируют три скрипта — меняй согласованно.
+- Логика ISO-недели и недельного шардинга (`iso_week_of`, бакетизация, дозапись) живёт в одном
+  модуле `scripts/shards.py`; `tg_sync.py`, `import_export.py`, `migrate_to_weekly.py` импортируют
+  его (`import shards`). Не возрождай локальные копии — меняй в `shards.py`.

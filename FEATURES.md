@@ -4,4 +4,4 @@
 
 | ветка | slug | описание | status | verify | review | дата | спека |
 |---|---|---|---|---|---|---|---|
-| _(пусто — заполнится по мере генерации фич)_ | | | | | | | |
+| `claude/telegram-loop-feature-repo-Pzr6v` | shards-module | Общий модуль недельного шардинга (shards.py) | done | pass | ok | 2026-05-30 | .claude/features/shards-module.md |

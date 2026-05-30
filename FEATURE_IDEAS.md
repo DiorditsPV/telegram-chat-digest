@@ -13,9 +13,9 @@
 
 ## Идеи
 <!-- Добавляй идеи сюда. feature-build переносит реализованные: - [ ] <slug> … → - [x] <slug> (<branch>) -->
-- [ ] shards-module: вынести дублируемую логику недельного шардинга (`iso_week_of`, чтение/запись/
-  бакетизация JSONL) в общий `scripts/shards.py` + юнит-тесты; перевести `tg_sync.py`,
-  `import_export.py`, `migrate_to_weekly.py` на него — закрыть инвариант #5 (дубли) — scripts/ + tests/.
+- [x] shards-module (claude/telegram-loop-feature-repo-Pzr6v): вынести дублируемую логику недельного
+  шардинга (`iso_week_of`, чтение/запись/бакетизация JSONL) в общий `scripts/shards.py` + юнит-тесты;
+  перевести `tg_sync.py`, `import_export.py`, `migrate_to_weekly.py` на него — закрыть инвариант #5.
 - [ ] tg-stats: `scripts/tg_stats.py` — статистика по шардам цели (сообщений/неделю, топ-авторы,
   средняя длина, активные дни, доля медиа) с CLI `--name/--weeks`; ядро-агрегатор + тесты — scripts/ + tests/.
 - [ ] tg-search: `scripts/tg_search.py` — поиск по сырым шардам (подстрока/regex + фильтры author/

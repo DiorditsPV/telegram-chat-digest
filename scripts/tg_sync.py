@@ -14,6 +14,7 @@
 Запуск:  python3 scripts/tg_sync.py            # все цели из config.yaml
          python3 scripts/tg_sync.py --only team-platform
 """
+
 from __future__ import annotations
 
 import argparse
@@ -21,13 +22,14 @@ import asyncio
 import json
 import os
 import sys
-from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import yaml
 from telethon import TelegramClient, utils
 from telethon.tl.types import MessageMediaPhoto, MessageMediaDocument, MessageService
+
+import shards
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -103,29 +105,6 @@ def media_kind(msg) -> str | None:
     return type(msg.media).__name__
 
 
-def iso_week_of(ts: int | None) -> str:
-    """ISO-неделя UTC в формате 'YYYY-Www' (имя недельного шарда).
-
-    Сообщения без даты складываем в отдельный шард 'undated', чтобы не терять.
-    """
-    if not ts:
-        return "undated"
-    y, w, _ = datetime.fromtimestamp(ts, tz=timezone.utc).isocalendar()
-    return f"{y}-W{w:02d}"
-
-
-def append_by_week(out_dir: Path, records: list[dict]) -> list[str]:
-    """Дописывает записи в недельные шарды по дате сообщения. Возвращает недели."""
-    buckets: dict[str, list[dict]] = defaultdict(list)
-    for rec in records:
-        buckets[iso_week_of(rec.get("ts"))].append(rec)
-    for week, recs in sorted(buckets.items()):
-        with (out_dir / f"{week}.jsonl").open("a", encoding="utf-8") as f:
-            for rec in recs:
-                f.write(json.dumps(rec, ensure_ascii=False) + "\n")
-    return sorted(buckets)
-
-
 def normalize(msg, topic) -> dict:
     sender = msg.sender
     rec = {
@@ -137,9 +116,9 @@ def normalize(msg, topic) -> dict:
         "topic": topic,
         "reply_to": msg.reply_to_msg_id,
         "edited": msg.edit_date.astimezone(timezone.utc).isoformat() if msg.edit_date else None,
-        "fwd": utils.get_display_name(msg.forward.sender) if msg.forward and msg.forward.sender else (
-            getattr(msg.forward, "from_name", None) if msg.forward else None
-        ),
+        "fwd": utils.get_display_name(msg.forward.sender)
+        if msg.forward and msg.forward.sender
+        else (getattr(msg.forward, "from_name", None) if msg.forward else None),
         "media": media_kind(msg),
         "text": msg.raw_text or "",
     }
@@ -184,7 +163,7 @@ async def sync_target(client: TelegramClient, cfg: dict, target: dict, state: di
             new_records.append(normalize(msg, topic))
 
     if new_records:
-        weeks = append_by_week(out_dir, new_records)
+        weeks = shards.append_by_week(out_dir, new_records)
         new_last = max(r["id"] for r in new_records)
     else:
         weeks = []
@@ -238,8 +217,7 @@ async def main() -> int:
             return 2
 
     state = read_state(data_dir)
-    client = TelegramClient(str(cfg["_session"]), int(api_id), api_hash,
-                            flood_sleep_threshold=120)
+    client = TelegramClient(str(cfg["_session"]), int(api_id), api_hash, flood_sleep_threshold=120)
     await client.start(phone=phone)  # интерактивный логин только при первом запуске
 
     deltas = []
@@ -248,8 +226,10 @@ async def main() -> int:
             try:
                 delta = await sync_target(client, cfg, t, state)
                 deltas.append(delta)
-                print(f"[{t['name']}] +{delta['count']} новых "
-                      f"(id {delta['first_id']}..{delta['last_id']})")
+                print(
+                    f"[{t['name']}] +{delta['count']} новых "
+                    f"(id {delta['first_id']}..{delta['last_id']})"
+                )
             except Exception as e:  # noqa: BLE001 — одна упавшая цель не валит остальные
                 print(f"[{t['name']}] ОШИБКА: {e}", file=sys.stderr)
             await asyncio.sleep(1)  # бережный rate-limit между целями
