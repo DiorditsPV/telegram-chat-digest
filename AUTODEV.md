@@ -8,11 +8,11 @@
 Вставь в Claude Code CLI **одной строкой** (модель сама задаёт темп):
 
 ```
-/loop 5m Один цикл автогенерации фичи по .claude/AUTODEV.md: (1) git switch <default_branch> и убедись, что дерево чистое; (2) возьми следующую [ ]-идею из <ideas_file> с учётом FEATURES.md (не дублируй реализованное); если бэклог пуст — придумай 1 новую идею из пробелов/UX и допиши её в <ideas_file>; (3) Skill feature-design по идее; (4) Skill feature-build (ветка <branch_prefix><slug>, гейт = Verify-конфиг + code-review, код коммитится НА ветке); (5) ПО УСПЕХУ вернись на <default_branch> и ТАМ обнови ledger: пометь идею [x] в <ideas_file>, проставь в спеке status: done + verify/review/branch, перегенерируй каталог (python3 .claude/skills/feature-build/catalog.py), затем git commit этих ledger-файлов НА default_branch (docs-only, БЕЗ push). Код фичи НЕ мёржить — он живёт на ветке. Соблюдай СТОП-условия и потолки из AUTODEV.md.
+/loop 5m Один цикл автогенерации фичи по .claude/AUTODEV.md (бэклог = GitHub issues, метка feature): (1) git switch <default_branch> и убедись, что дерево чистое; (2) возьми следующий открытый issue с меткой feature (mcp__github__list_issues state=OPEN labels=["feature"]), у которого ещё НЕТ спеки со status: building|done — это фича; если открытых issue нет — заведи 1 новый из пробела (issue_write method=create, метка feature) и бери его; (3) Skill feature-design по issue (в frontmatter спеки — issue: <N>); (4) Skill feature-build (ветка <branch_prefix><slug>, гейт = Verify-конфиг + code-review, код коммитится НА ветке, сообщение коммита оканчивается «(#<N>)»); (5) ПО УСПЕХУ: коммент-статус в issue #<N> (mcp__github__add_issue_comment: ветка/коммит, verify+review, путь спеки) — issue НЕ закрывать (done≠shipped); затем вернись на <default_branch> и ТАМ обнови ledger: спеке status: done + verify/review/branch, отметь строку issue в <ideas_file>-зеркале, перегенерируй каталог (python3 .claude/skills/feature-build/catalog.py), git commit ledger-файлов НА default_branch (docs-only, БЕЗ push). Код фичи НЕ мёржить — он живёт на ветке. Соблюдай СТОП-условия и потолки из AUTODEV.md.
 ```
 
-Подставь реальные значения `<default_branch>`, `<ideas_file>`, `<branch_prefix>` из `.claude/feature-loop.md`.
-Остановить: прервать `/loop` (Esc) или сказать «останови луп».
+Подставь реальные значения `<default_branch>`, `<branch_prefix>`, `<ideas_file>` и репозиторий issue из `.claude/feature-loop.md`.
+Остановить: прервать `/loop` (Esc) или сказать «останови луп». Закрытие issue (`state_reason: completed`) — при ручной выкатке `feature-ship`.
 
 ## Инварианты (нерушимо)
 1. **Код фичи — только на `<branch_prefix><slug>`, никогда не коммитить КОД в default-ветку.** Перед новым
@@ -24,15 +24,16 @@
 3. **Гейт качества обязателен:** ветка остаётся, только если Verify зелёный **и** прогнан `code-review`
    (замечания — в спеку, поля `verify:`/`review:`). Красный Verify → не оставлять полуфабрикат: доведи
    до зелёного либо откати ветку и пометь идею проблемной.
-4. **Идемпотентность:** slug уникален; если ветка фичи уже есть или идея `[x]` — пропусти, бери следующую.
-5. **Контекст каждой фичи:** feature-design читает `<ideas_file>` (что хотим) + `FEATURES.md` (что уже
-   сделано) + существующие `.claude/features/*.md` — чтобы не плодить дубли.
+4. **Идемпотентность:** slug уникален; если ветка фичи уже есть или у issue уже есть спека
+   `status: building|done` — пропусти, бери следующий открытый issue.
+5. **Контекст каждой фичи:** feature-design читает issue #N (что хотим) + `FEATURES.md` (что уже
+   сделано) + существующие `.claude/features/*.md` — чтобы не плодить дубли. `<ideas_file>` — зеркало.
 
 ## Потолки и СТОП-условия (заверши `/loop`, если)
 - открытых веток фич стало **≥ 20** (порог ревью — сначала разгреби);
 - **2 цикла подряд** упал Verify (что-то системно сломано — нужен человек);
 - задан токен-бюджет на ход (директива вида «+500k») и он **исчерпан**;
-- бэклог пуст **и** автоген не смог придумать недублирующую идею.
+- открытых issue с меткой `feature` нет **и** автоген не смог придумать недублирующую идею (новый issue).
 При срабатывании — кратко отчитайся и не планируй следующий цикл.
 
 ## Как ревьюить позже

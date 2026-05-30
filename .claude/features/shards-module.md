@@ -3,6 +3,7 @@ slug: shards-module
 title: Общий модуль недельного шардинга (shards.py)
 status: done
 created: 2026-05-30
+issue: 1
 branch: claude/telegram-loop-feature-repo-Pzr6v
 verify: pass
 review: ok

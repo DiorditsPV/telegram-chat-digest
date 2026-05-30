@@ -3,6 +3,7 @@ slug: <kebab-slug>
 title: <короткое название фичи>
 status: designed        # designed -> building -> done
 created: <YYYY-MM-DD>
+issue: <N>              # номер GitHub-issue бэклога (метка feature) — источник фичи
 branch: feature/<kebab-slug>
 verify: —               # заполняет feature-build: pass | fail
 review: —               # заполняет feature-build: ok | <кратко замечания>

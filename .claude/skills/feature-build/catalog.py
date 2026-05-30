@@ -45,6 +45,7 @@ def main():
                     "slug": slug,
                     "title": meta.get("title", slug),
                     "status": meta.get("status", "designed"),
+                    "issue": meta.get("issue", "—"),
                     "verify": meta.get("verify", "—"),
                     "review": meta.get("review", "—"),
                     "branch": meta.get("branch", f"feature/{slug}"),
@@ -61,17 +62,19 @@ def main():
         "`.claude/features/*.md`). Каждая строка — ветка-кандидат. Посмотреть: "
         "`git switch <branch>`. Понравилось → merge в default-ветку.",
         "",
-        "| ветка | slug | описание | status | verify | review | дата | спека |",
-        "|---|---|---|---|---|---|---|---|",
+        "| ветка | slug | issue | описание | status | verify | review | дата | спека |",
+        "|---|---|---|---|---|---|---|---|---|",
     ]
     if rows:
         for r in rows:
+            issue = r.get("issue", "—")
+            issue_cell = f"#{issue}" if issue and issue != "—" else "—"
             lines.append(
-                f"| `{r['branch']}` | {r['slug']} | {r['title']} | {r['status']} | "
+                f"| `{r['branch']}` | {r['slug']} | {issue_cell} | {r['title']} | {r['status']} | "
                 f"{r['verify']} | {r['review']} | {r['created']} | {r['spec']} |"
             )
     else:
-        lines.append("| _(пусто — заполнится по мере генерации фич)_ | | | | | | | |")
+        lines.append("| _(пусто — заполнится по мере генерации фич)_ | | | | | | | | |")
     lines.append("")
     OUT.write_text("\n".join(lines), encoding="utf-8")
     print(f"{OUT}: {len(rows)} feature(s)")

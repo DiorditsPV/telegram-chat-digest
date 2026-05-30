@@ -15,9 +15,12 @@ Q&A силами сессии Claude Code. Подробная карта — в 
 |---|---|---|
 | `branch_prefix` | `feature/` | ветки фич называются `<branch_prefix><slug>` |
 | `default_branch` | `main` | куда писать ledger |
-| `ideas_file` | `FEATURE_IDEAS.md` | бэклог идей |
+| `backlog_source` | **GitHub issues** | источник истины «что делать» — open issues с меткой `feature` (см. ниже) |
+| `issue_repo` | `DiorditsPV/telegram-chat-digest` | репозиторий issues (через GitHub MCP-инструменты) |
+| `issue_label` | `feature` | метка фич-бэклога |
+| `ideas_file` | `FEATURE_IDEAS.md` | **зеркало** issue-бэклога (офлайн-индекс); канон — issues |
 | `features_catalog` | `FEATURES.md` | каталог реализованных фич (генерится `catalog.py`) |
-| `specs_dir` | `.claude/features` | спеки фич `<slug>.md` |
+| `specs_dir` | `.claude/features` | спеки фич `<slug>.md` (frontmatter содержит `issue: <N>`) |
 | `commit_trailer` | `—` | трейлер коммита не требуется |
 
 **Переиспользуемые скиллы** (доменные слэш-команды проекта — агентский слой). `feature-build`
@@ -34,6 +37,32 @@ reused_skills:
 > Эти команды требуют живого Telegram-аккаунта/сессии и недоступны в CI/песочнице. Для
 > фич аналитики/утилит над уже выгруженными шардами они НЕ нужны — работай с `data/<name>/*.jsonl`
 > напрямую (формат — в `examples/team-platform/`).
+
+---
+
+## Бэклог: GitHub issues (источник истины «что делать»)
+
+Канонический бэклог — **открытые GitHub issues с меткой `feature`** в `DiorditsPV/telegram-chat-digest`
+(не markdown-файл). `FEATURE_IDEAS.md` — лишь офлайн-зеркало/индекс для справки. Цикл работает так:
+
+1. **Выбор фичи** (feature-design): взять следующий открытый issue с меткой `feature`, у которого ещё
+   нет спеки/ветки (нет связанной `.claude/features/<slug>.md` со `status: building|done`). Через GitHub
+   MCP: `list_issues(owner, repo, state=OPEN, labels=["feature"])`. Бэклог пуст → можно завести новый
+   issue из пробела (`issue_write method=create`, метка `feature`), затем проектировать его.
+2. **Спека ↔ issue**: `slug` фичи = из заголовка issue `feat(<slug>): …`. В frontmatter спеки —
+   обязательное поле **`issue: <N>`** (номер issue). Так каталог и issue всегда связаны.
+3. **Привязка кода**: коммит фичи заканчивается ссылкой на issue — `feat(<slug>): <title> (#<N>)`.
+4. **Статус обратно в issue** (feature-build, по завершении): постит коммент в issue #N через
+   `add_issue_comment` — что фича собрана (done-кандидат): ветка/коммит, результат Verify + code-review,
+   путь спеки. **Issue НЕ закрывается на build** (done ≠ shipped): закрытие — при ручной выкатке
+   (feature-ship, мёрж в `main`) со `state_reason: completed`. Красный Verify → коммент о проблеме,
+   issue остаётся открытым.
+5. **Идемпотентность по issue**: прежде чем брать issue, проверь, нет ли уже спеки с этим `issue:` в
+   `status: building|done` — если есть, пропусти (не дублируй).
+
+> Эти шаги используют GitHub MCP-инструменты (`mcp__github__list_issues`, `issue_write`,
+> `add_issue_comment`, `issue_read`). Сетевые операции — только по issue-бэклогу; код по-прежнему
+> коммитится локально (push/PR/мёрж — решение человека).
 
 ---
 
