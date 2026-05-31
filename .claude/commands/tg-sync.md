@@ -103,6 +103,7 @@ decisions.append_event(path, {
     "statement": "<что решили / что за задача>",
     "why": "<причина: что в обсуждении к этому привело>",
     "effect": "<следствие/итог; опусти, пока неизвестно>",
+    "owner": "<ответственный: имя/@handle; опусти, если не назначен>",
     "status": "decided",                  # open | decided | done | reversed
     "refs": [105],                        # id сообщений-источников
     "by": "tg-sync",

@@ -27,7 +27,7 @@ STATUSES = ("open", "decided", "done", "reversed")
 # Порядок вывода статусов на доске: сначала то, что требует внимания.
 _STATUS_ORDER = {"open": 0, "decided": 1, "done": 2, "reversed": 3}
 # Поля, которые при свёртке берём «последним непустым».
-_MERGE_FIELDS = ("topic", "kind", "statement", "why", "effect", "status", "note")
+_MERGE_FIELDS = ("topic", "kind", "statement", "why", "effect", "status", "owner", "note")
 
 
 def validate_event(ev: dict) -> list[str]:
@@ -135,6 +135,8 @@ def _fmt_refs(refs: list) -> str:
 def _item_line(it: dict) -> str:
     status = it.get("status") or "open"
     parts = [f"- **[{status}]** {it.get('statement') or it['item_id']}"]
+    if it.get("owner"):
+        parts.append(f"_отв.:_ {it['owner']}")
     if it.get("why"):
         parts.append(f"_почему:_ {it['why']}")
     if it.get("effect"):
@@ -143,6 +145,22 @@ def _item_line(it: dict) -> str:
     if refs:
         parts.append(f"({refs})")
     return " · ".join(parts)
+
+
+def by_owner(items: list[dict]) -> dict[str, list[dict]]:
+    """Сгруппировать сущности по ответственному (`owner`)."""
+    groups: dict[str, list[dict]] = {}
+    for it in items:
+        groups.setdefault(it.get("owner") or "(не назначено)", []).append(it)
+    return groups
+
+
+def for_owner(items: list[dict], who: str) -> list[dict]:
+    """Сущности, где `who` входит в ответственного (регистронезависимо)."""
+    q = (who or "").casefold().strip()
+    if not q:
+        return []
+    return [it for it in items if q in str(it.get("owner") or "").casefold()]
 
 
 def render_board(items: list[dict], title: str = "Доска решений и задач") -> str:
