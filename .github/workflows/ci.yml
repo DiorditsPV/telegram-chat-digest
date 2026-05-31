@@ -1,0 +1,19 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      # Лёгкий CI: гейту нужны только инструменты — тесты чистые (без telethon).
+      - run: pip install ruff mypy pytest types-PyYAML
+      - run: make check

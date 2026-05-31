@@ -20,6 +20,7 @@
 Запуск:  .venv/bin/python scripts/tg_overview.py            # окно DEFAULT_DAYS
          .venv/bin/python scripts/tg_overview.py --days 14
 """
+
 from __future__ import annotations
 
 import argparse
@@ -28,9 +29,6 @@ import os
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-
-# Окно обзора по умолчанию (дней). Переопределяется флагом --days.
-DEFAULT_DAYS = 7
 
 import yaml
 from telethon import TelegramClient, utils
@@ -42,6 +40,9 @@ from telethon.tl.types import (
 )
 
 ROOT = Path(__file__).resolve().parent.parent
+
+# Окно обзора по умолчанию (дней). Переопределяется флагом --days.
+DEFAULT_DAYS = 7
 
 
 def load_env(path: Path) -> None:
@@ -69,7 +70,7 @@ def mentions_me(msg, me) -> bool:
         if isinstance(e, MessageEntityMentionName) and e.user_id == me.id:
             return True
         if isinstance(e, MessageEntityMention) and uname:
-            frag = text[e.offset:e.offset + e.length].lstrip("@").lower()
+            frag = text[e.offset : e.offset + e.length].lstrip("@").lower()
             if frag == uname:
                 return True
     return False
@@ -89,7 +90,7 @@ async def analyze_dialog(client, entity, cutoff, me) -> dict | None:
     if not msgs:
         return None
 
-    authors = Counter()
+    authors: Counter[str] = Counter()
     my_msg_ids = set()
     mention_cnt = 0
     my_reply_cnt = 0
@@ -104,10 +105,7 @@ async def analyze_dialog(client, entity, cutoff, me) -> dict | None:
             if m.reply_to_msg_id:
                 my_reply_cnt += 1
 
-    replies_to_me = sum(
-        1 for m in msgs
-        if m.reply_to_msg_id in my_msg_ids and m.sender_id != me.id
-    )
+    replies_to_me = sum(1 for m in msgs if m.reply_to_msg_id in my_msg_ids and m.sender_id != me.id)
 
     top = ", ".join(f"{n} ({c})" for n, c in authors.most_common(2))
     return {
@@ -139,8 +137,12 @@ def render_table(rows: list[dict], n: int, generated: datetime) -> str:
 
 async def main() -> int:
     ap = argparse.ArgumentParser(description="Light-обзор активных групп Telegram за N дней")
-    ap.add_argument("--days", type=int, default=DEFAULT_DAYS,
-                    help=f"окно обзора в днях (по умолчанию {DEFAULT_DAYS})")
+    ap.add_argument(
+        "--days",
+        type=int,
+        default=DEFAULT_DAYS,
+        help=f"окно обзора в днях (по умолчанию {DEFAULT_DAYS})",
+    )
     args = ap.parse_args()
 
     load_env(ROOT / ".env")
@@ -166,9 +168,9 @@ async def main() -> int:
     try:
         me = await client.get_me()
         async for dialog in client.iter_dialogs():
-            if not dialog.is_group:          # только группы и супергруппы
+            if not dialog.is_group:  # только группы и супергруппы
                 continue
-            if dialog.date and dialog.date < cutoff:   # дешёвый пре-фильтр по активности
+            if dialog.date and dialog.date < cutoff:  # дешёвый пре-фильтр по активности
                 continue
             stats = await analyze_dialog(client, dialog.entity, cutoff, me)
             if not stats:
