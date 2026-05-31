@@ -10,24 +10,18 @@
     python3 scripts/import_export.py --export "ChatExport_2026-01-15" \
         --name team-ops
 """
+
 from __future__ import annotations
 
 import argparse
 import json
-from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
+import shards
+
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
-
-
-def iso_week_of(ts: int | None) -> str:
-    """ISO-неделя UTC 'YYYY-Www' — имя недельного шарда (см. tg_sync.py)."""
-    if not ts:
-        return "undated"
-    y, w, _ = datetime.fromtimestamp(ts, tz=timezone.utc).isocalendar()
-    return f"{y}-W{w:02d}"
 
 
 def render_text(text) -> str:
@@ -50,8 +44,8 @@ def parse_from_id(raw) -> object:
         return None
     s = str(raw)
     for prefix in ("user", "channel", "chat"):
-        if s.startswith(prefix) and s[len(prefix):].isdigit():
-            return int(s[len(prefix):])
+        if s.startswith(prefix) and s[len(prefix) :].isdigit():
+            return int(s[len(prefix) :])
     return raw
 
 
@@ -86,7 +80,7 @@ def main() -> int:
     ap.add_argument("--topic", type=int, default=None)
     args = ap.parse_args()
 
-    src = (ROOT / args.export / "result.json")
+    src = ROOT / args.export / "result.json"
     data = json.loads(src.read_text(encoding="utf-8"))
     msgs = [m for m in data["messages"] if m.get("type") == "message"]
 
@@ -94,21 +88,18 @@ def main() -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     existing = list(out_dir.glob("*.jsonl"))
     if existing:
-        print(f"ОШИБКА: в {out_dir} уже есть шарды ({len(existing)} шт.) — "
-              f"не перетираю. Удалите вручную при необходимости.")
+        print(
+            f"ОШИБКА: в {out_dir} уже есть шарды ({len(existing)} шт.) — "
+            f"не перетираю. Удалите вручную при необходимости."
+        )
         return 1
 
     records = [normalize(m, args.topic) for m in msgs]
     records.sort(key=lambda r: r["id"])
 
     # Раскладываем по недельным шардам (ISO-неделя по дате сообщения, UTC).
-    buckets: dict[str, list[dict]] = defaultdict(list)
-    for r in records:
-        buckets[iso_week_of(r.get("ts"))].append(r)
-    for week, recs in sorted(buckets.items()):
-        with (out_dir / f"{week}.jsonl").open("w", encoding="utf-8") as f:
-            for r in recs:
-                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    # Каталог гарантированно пуст (проверка existing выше) — пишем "w".
+    shards.append_by_week(out_dir, records, mode="w")
 
     last_id = max(r["id"] for r in records)
     state_f = DATA / "state.json"
@@ -120,8 +111,10 @@ def main() -> int:
     }
     state_f.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    print(f"[{args.name}] импортировано {len(records)} сообщений, "
-          f"id {records[0]['id']}..{last_id} (chat: {data.get('name')!r})")
+    print(
+        f"[{args.name}] импортировано {len(records)} сообщений, "
+        f"id {records[0]['id']}..{last_id} (chat: {data.get('name')!r})"
+    )
     return 0
 
 

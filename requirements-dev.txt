@@ -1,0 +1,7 @@
+# Dev-инструменты качества: линт/типы/тесты (конфиг — в pyproject.toml).
+# Установка:  pip install -r requirements-dev.txt
+-r requirements.txt
+ruff>=0.6
+mypy>=1.8
+pytest>=8.0
+types-PyYAML>=6.0

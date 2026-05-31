@@ -12,24 +12,16 @@
          python3 scripts/migrate_to_weekly.py --only team-platform
          python3 scripts/migrate_to_weekly.py --dry-run     # только показать план
 """
+
 from __future__ import annotations
 
 import argparse
-import json
-from collections import defaultdict
-from datetime import datetime, timezone
 from pathlib import Path
+
+import shards
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
-
-
-def iso_week_of(ts: int | None) -> str:
-    """ISO-неделя UTC 'YYYY-Www' — имя недельного шарда (см. tg_sync.py)."""
-    if not ts:
-        return "undated"
-    y, w, _ = datetime.fromtimestamp(ts, tz=timezone.utc).isocalendar()
-    return f"{y}-W{w:02d}"
 
 
 def migrate_target(target_dir: Path, dry_run: bool) -> bool:
@@ -37,28 +29,17 @@ def migrate_target(target_dir: Path, dry_run: bool) -> bool:
     if not raw.exists():
         return False
 
-    records = []
-    for line in raw.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if line:
-            records.append(json.loads(line))
+    records = shards.read_jsonl(raw)
     records.sort(key=lambda r: r.get("id", 0))
 
-    buckets: dict[str, list[dict]] = defaultdict(list)
-    for r in records:
-        buckets[iso_week_of(r.get("ts"))].append(r)
-
+    buckets = shards.bucket_by_week(records)
     plan = ", ".join(f"{w}:{len(rs)}" for w, rs in sorted(buckets.items()))
     print(f"[{target_dir.name}] {len(records)} сообщ. -> {len(buckets)} недель ({plan})")
     if dry_run:
         return True
 
-    for week, recs in sorted(buckets.items()):
-        shard = target_dir / f"{week}.jsonl"
-        # append, чтобы не затереть шарды, если миграцию запустили повторно частично
-        with shard.open("a", encoding="utf-8") as f:
-            for r in recs:
-                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    # append, чтобы не затереть шарды, если миграцию запустили повторно частично
+    shards.append_by_week(target_dir, records, mode="a")
     raw.rename(target_dir / "raw.jsonl.migrated")
     return True
 
@@ -81,8 +62,9 @@ def main() -> int:
     if not migrated:
         print("Нечего мигрировать (raw.jsonl не найдены).")
     elif not args.dry_run:
-        print(f"\nГотово. Мигрировано целей: {migrated}. "
-              f"Оригиналы сохранены как raw.jsonl.migrated.")
+        print(
+            f"\nГотово. Мигрировано целей: {migrated}. Оригиналы сохранены как raw.jsonl.migrated."
+        )
     return 0
 
 

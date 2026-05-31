@@ -21,3 +21,28 @@ Repository = "https://github.com/<your-account>/telegram-chat-digest"
 # `pip install -e .` ставит только зависимости и метаданные.
 [tool.setuptools]
 py-modules = []
+
+# --------------------------------------------------------------------------- #
+# Dev-инструменты качества (линт/типы/тесты). Ставятся из requirements-dev.txt.
+# Конфиг скоупится так, чтобы новый код проходил зелёным, не требуя «лечить»
+# весь легаси-код разом (линт/типы — по затронутым файлам, тесты — целиком).
+# --------------------------------------------------------------------------- #
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.mypy]
+python_version = "3.10"
+# Скрипты импортируют сиблингов по имени (`import shards`) — даём mypy этот путь.
+mypy_path = "scripts"
+# Сторонние telethon/yaml без стабов мы намеренно не вендорим — проверяем СВОЙ код,
+# а не библиотеки: глушим import-not-found (ignore_missing_imports) и import-untyped.
+ignore_missing_imports = true
+disable_error_code = ["import-untyped"]
+
+[tool.pytest.ini_options]
+# Скрипты лежат плоско в scripts/ и запускаются как `python3 scripts/<x>.py`,
+# поэтому в тестах импортируем их по имени модуля (`import shards`).
+pythonpath = ["scripts"]
+testpaths = ["tests"]
+addopts = "-q"
