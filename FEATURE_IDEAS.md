@@ -14,9 +14,9 @@
 ## Роадмап (зеркало issues)
 - [x] shards-module (#1, claude/telegram-loop-feature-repo-Pzr6v): общий модуль недельного шардинга
   `scripts/shards.py` (закрыт инвариант #5). Фундамент.
-- [ ] decision-log (#11): лёгкий журнал решений/задач по темам — `data/<name>/decisions.jsonl`
-  (append-only event-log: topic/statement/why/effect/status/refs) + `scripts/decisions.py`
-  (свёртка/доска по темам) + `/tg-sync` дозаписывает + команда `/tg-topics`. **Слой данных.**
+- [x] decision-log (#11, claude/telegram-loop-feature-repo-Pzr6v): лёгкий журнал решений/задач по темам —
+  `data/<name>/decisions.jsonl` (append-only event-log) + `scripts/decisions.py` (свёртка/доска по темам)
+  + `/tg-sync` дозаписывает + команда `/tg-topics`. **Слой данных.**
 - [ ] tg-why (#12): запрос «причина → следствие» по теме/решению — `history`/`search`/`render_trace`
   в `decisions.py` + команда `/tg-why <тема>` (цепочка причина→решение→следствие с цитатами). **Слой использования.**
 
