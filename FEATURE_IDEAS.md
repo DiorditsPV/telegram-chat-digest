@@ -17,8 +17,8 @@
 - [x] decision-log (#11, claude/telegram-loop-feature-repo-Pzr6v): лёгкий журнал решений/задач по темам —
   `data/<name>/decisions.jsonl` (append-only event-log) + `scripts/decisions.py` (свёртка/доска по темам)
   + `/tg-sync` дозаписывает + команда `/tg-topics`. **Слой данных.**
-- [ ] tg-why (#12): запрос «причина → следствие» по теме/решению — `history`/`search`/`render_trace`
-  в `decisions.py` + команда `/tg-why <тема>` (цепочка причина→решение→следствие с цитатами). **Слой использования.**
+- [x] tg-why (#12, claude/telegram-loop-feature-repo-Pzr6v): запрос «причина → следствие» по теме/решению —
+  `history`/`search`/`render_trace` в `decisions.py` + команда `/tg-why <тема>`. **Слой использования.**
 
 ## Закрыто как superseded / not planned
 - #2 tg-stats, #3 tg-search, #4 tg-export, #5 tg-doctor, #6 config-validate, #7 tg-threads —
