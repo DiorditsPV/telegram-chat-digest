@@ -14,7 +14,7 @@ import pytest
 
 
 def make_rec(id: int, ts: int | None, text: str = "", **over) -> dict:
-    """Собрать запись сообщения в формате шардов (схема — см. feature-loop.md)."""
+    """Собрать запись сообщения в формате шардов (схема — см. AGENTS.md / README)."""
     date = datetime.fromtimestamp(ts, tz=timezone.utc).isoformat() if ts is not None else None
     rec = {
         "id": id,
